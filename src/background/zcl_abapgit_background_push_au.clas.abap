@@ -133,7 +133,13 @@ CLASS zcl_abapgit_background_push_au IMPLEMENTATION.
       CLEAR: ls_comment.
 
 *     Fill user details
-      ls_comment-committer = determine_user_details( lv_changed_by ).
+      ls_comment-author = determine_user_details( lv_changed_by ).
+      IF sy-batch = abap_true.
+        ls_comment-committer = VALUE #( name  = 'Auto Committer'
+                                        email = 'ac-runner@localhost' ).
+      ELSE.
+        ls_comment-committer = determine_user_details( sy-uname ).
+      ENDIF.
 
       CREATE OBJECT lo_stage.
 
