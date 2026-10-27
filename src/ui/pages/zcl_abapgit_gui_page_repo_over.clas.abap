@@ -447,6 +447,8 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     DATA lo_toolbar TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lo_toolbar_more_sub TYPE REF TO zcl_abapgit_html_toolbar.
+    DATA lo_toolbar_patch_sub TYPE REF TO zcl_abapgit_html_toolbar.
+    DATA lo_toolbar_diff_sub TYPE REF TO zcl_abapgit_html_toolbar.
     DATA lv_dummy_key_param TYPE string.
 
     lv_dummy_key_param = |?key={ c_dummy_key }|.
@@ -465,15 +467,45 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_class    = |{ lc_action_class } { lc_online_class }|
       iv_li_class = |{ lc_action_class }| ).
 
+    CREATE OBJECT lo_toolbar_patch_sub EXPORTING iv_id = 'toolbar-ovp-patch_sub'.
+
+    lo_toolbar_patch_sub->add(
+      iv_txt      = |All Changes|
+      iv_act      = |{ zif_abapgit_definitions=>c_action-go_patch }{ lv_dummy_key_param }|
+      iv_class    = |{ lc_action_class } { lc_online_class }|
+      iv_li_class = |{ lc_action_class }| ).
+
+    lo_toolbar_patch_sub->add(
+      iv_txt      = |My Changes|
+      iv_title    = |Patch only the objects you changed|
+      iv_act      = |{ zif_abapgit_definitions=>c_action-go_patch_me }{ lv_dummy_key_param }|
+      iv_class    = |{ lc_action_class } { lc_online_class }|
+      iv_li_class = |{ lc_action_class }| ).
+
     lo_toolbar->add(
       iv_txt      = |Patch|
-      iv_act      = |{ zif_abapgit_definitions=>c_action-go_patch }{ lv_dummy_key_param }|
+      io_sub      = lo_toolbar_patch_sub
+      iv_class    = |{ lc_action_class } { lc_online_class }|
+      iv_li_class = |{ lc_action_class }| ).
+
+    CREATE OBJECT lo_toolbar_diff_sub EXPORTING iv_id = 'toolbar-ovp-diff_sub'.
+
+    lo_toolbar_diff_sub->add(
+      iv_txt      = |All Changes|
+      iv_act      = |{ zif_abapgit_definitions=>c_action-go_repo_diff }{ lv_dummy_key_param }|
+      iv_class    = |{ lc_action_class } { lc_online_class }|
+      iv_li_class = |{ lc_action_class }| ).
+
+    lo_toolbar_diff_sub->add(
+      iv_txt      = |My Changes|
+      iv_title    = |Diff only your own changes|
+      iv_act      = |{ zif_abapgit_definitions=>c_action-go_repo_diff_me }{ lv_dummy_key_param }|
       iv_class    = |{ lc_action_class } { lc_online_class }|
       iv_li_class = |{ lc_action_class }| ).
 
     lo_toolbar->add(
       iv_txt      = |Diff|
-      iv_act      = |{ zif_abapgit_definitions=>c_action-go_repo_diff }{ lv_dummy_key_param }|
+      io_sub      = lo_toolbar_diff_sub
       iv_class    = |{ lc_action_class } { lc_online_class }|
       iv_li_class = |{ lc_action_class }| ).
 
@@ -495,9 +527,12 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_class    = |{ lc_action_class } { lc_offline_class }|
       iv_li_class = |{ lc_action_class }| ).
 
-    zcl_abapgit_html_toolbar_lib=>render_repo_settings_dropdown(
-      io_toolbar  = lo_toolbar
-      iv_key      = c_dummy_key
+    lo_toolbar->add(
+      iv_txt      = 'Repo Settings'
+      iv_title    = 'Repository Settings'
+      io_sub      = zcl_abapgit_gui_menus=>repo_settings(
+                      iv_key   = c_dummy_key
+                      iv_class = lc_action_class )
       iv_class    = |{ lc_action_class }|
       iv_li_class = |{ lc_action_class }| ).
 
@@ -571,8 +606,9 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     ri_html->add( |<form class="inline" method="post" action="sapevent:{ c_action-apply_filter }">| ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_text_input(
       iv_name      = |filter|
-      iv_label     = |Filter: { render_filter_help_hint( ) }|
+      iv_label     = |Filter:|
       iv_value     = ms_list_settings-filter ) ).
+    ri_html->add( render_filter_help_hint( ) ).
     ri_html->add( |<input type="submit" class="hidden-submit" title="Filter">| ).
     ri_html->add( |</form>| ).
 
@@ -669,6 +705,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
 
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( 'var gHelper = new RepoOverViewHelper({ focusFilterKey: "f" });' ).
+    ri_html->add( 'rememberScrollPosition("repo-overview");' ).
     ri_html->add( zcl_abapgit_gui_chunk_lib=>render_repo_palette( c_action-select ) ).
 
   ENDMETHOD.
@@ -1016,6 +1053,11 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
     ls_hotkey_action-hotkey = |a|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
+    ls_hotkey_action-description = |Patch My Changes|.
+    ls_hotkey_action-action = zif_abapgit_definitions=>c_action-go_patch_me.
+    ls_hotkey_action-hotkey = |m|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
     ls_hotkey_action-description = |Refresh|.
     ls_hotkey_action-action = c_action-refresh_list.
     ls_hotkey_action-hotkey = |r|.
@@ -1061,7 +1103,7 @@ CLASS zcl_abapgit_gui_page_repo_over IMPLEMENTATION.
       iv_act = zif_abapgit_definitions=>c_action-repo_newoffline
     )->add(
       iv_txt = zcl_abapgit_gui_buttons=>settings( )
-      io_sub = zcl_abapgit_gui_menus=>settings( space )
+      io_sub = zcl_abapgit_gui_menus=>settings( )
     )->add(
       iv_txt = zcl_abapgit_gui_buttons=>refresh( )
       iv_act = c_action-refresh_list

@@ -38,17 +38,23 @@ Avoid expanding the fixtures into a general-purpose browser emulator.
 | [`forms.test.cjs`](forms.test.cjs) | Desktop and WebGUI form routing, parameter encoding, repeated submissions, and preservation of existing fields |
 | [`stage.test.cjs`](stage.test.cjs) | Commit and patch actions, selection/filter precedence, visible-file staging, and selection counts |
 | [`palette.test.cjs`](palette.test.cjs) | Filtering, keyboard navigation, command execution, reopening, and fuzzy matching |
+| [`busy.test.cjs`](busy.test.cjs) | WebGUI busy lock: locking and unlocking, input blocking, focus, page lifecycle, unsupported or changed shells |
 | [`checklist.test.cjs`](checklist.test.cjs) | Filter clicks and cancellation of fragment navigation |
-| [`diff.test.cjs`](diff.test.cjs) | Combined filters, staging visible files, and exact-path jumps |
+| [`diff.test.cjs`](diff.test.cjs) | Combined filters, jump-list visibility, and exact-path jumps |
 | [`fragments.test.cjs`](fragments.test.cjs) | Local fragment handling and browser Back interactions |
 | [`patch.test.cjs`](patch.test.cjs) | File and section selection boundaries and patch submission |
 | [`repo-overview.test.cjs`](repo-overview.test.cjs) | Repository selection and persisted state |
 | [`scroll.test.cjs`](scroll.test.cjs) | Scroll restoration and unavailable storage |
 | [`source-viewer.test.cjs`](source-viewer.test.cjs) | Asset loading, response ordering, caching, failures/retries, line numbers, and IE fallbacks |
 | [`keyboard-guards.test.cjs`](keyboard-guards.test.cjs) | Modified shortcuts, typing in editable controls, and deliberate hint activation/yanking |
+| [`keyboard.test.cjs`](keyboard.test.cjs) | Order of the page-wide key handlers, isolation of failing handlers, the shared typing guard, arrow keys, and the stage filter key |
+| [`picklist.test.cjs`](picklist.test.cjs) | Arrow navigation, mouse and keyboard selection, explicit confirmation, boundaries, disabled entries, and keyboard guards |
+| [`modal.test.cjs`](modal.test.cjs) | Tab and Shift+Tab kept inside an in-page popup, from the page behind it and at both ends |
 | [`link-hints.test.cjs`](link-hints.test.cjs) | Partial hints, cancellation/reopening, copy-mode reset, disabled controls, and checkbox activation |
 | [`key-navigation.test.cjs`](key-navigation.test.cjs) | Dropdown navigation and boundaries, link activation, modified keys, and editing controls |
 | [`diff-copy.test.cjs`](diff-copy.test.cjs) | Diff-column copying, invalid/empty selections, unrelated table clicks, and clipboard fallbacks |
+| [`error-banner.test.cjs`](error-banner.test.cjs) | Reporting later script errors in the banner, and ignoring scripts that are not ours |
+| [`environment.test.cjs`](environment.test.cjs) | Browser control per GUI (warning and footer), IE engine, sapevent prefix probing, and unknown environment keys |
 
 To measure the shipped JavaScript with Node's V8 coverage:
 

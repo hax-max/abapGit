@@ -36,7 +36,7 @@ function page(keys = []) {
   helper.saveLocalStorage = () => saved.push(helper.selectedRepoKey);
   helper.registerKeyboardShortcuts();
   return {
-    context, helper, rows, opened, saved,
+    context, helper, rows, opened, saved, listeners,
     enter() { listeners.keypress({ keyCode: 13 }); },
     keypress(keyCode) { listeners.keypress({ keyCode }); },
     // Returns whether the key was handled (default prevented)
@@ -74,6 +74,47 @@ test("Enter without selection does nothing; selecting the last row opens it", ()
   helper.selectRowByIndex(1);
   enter();
   assert.deepEqual(opened, ["2"]);
+});
+
+// A keypress as the browser sends it, with the typed character as well
+function keypress(p) {
+  return (keyCode, event = {}) => p.listeners.keypress({ keyCode, key: String.fromCharCode(keyCode), ...event });
+}
+
+test("digit 2 selects the next repository", () => {
+  const p = page(["1", "2"]);
+  const { helper } = p, press = keypress(p);
+  helper.selectRowByIndex(0);
+  press(50);
+  assert.equal(helper.selectedRepoKey, "2");
+});
+
+// Typing hint "26" must not move the selection first: the "2" would retarget
+// the action links before the hint activates one of them.
+for (const [name, arrange] of [
+  ["a link hint code is typed", context => { context.LinkHints.areHintsDisplayed = true; }],
+  ["the command palette input has focus", context => { context.document.activeElement = { nodeName: "INPUT", tagName: "INPUT" }; }]
+]) {
+  test(`digits leave the repository selection alone while ${name}`, () => {
+    const p = page(["1", "2", "3"]);
+    const { context, helper, saved } = p, press = keypress(p);
+    helper.selectRowByIndex(0);
+    arrange(context);
+    press(50);
+    press(56);
+    assert.equal(helper.selectedRepoKey, "1");
+    assert.deepEqual(saved, ["1"]);
+  });
+}
+
+test("keys consumed by an earlier handler leave the repository selection alone", () => {
+  const p = page(["1", "2"]);
+  const { helper, opened } = p, press = keypress(p);
+  helper.selectRowByIndex(0);
+  press(50, { defaultPrevented: true });
+  press(13, { defaultPrevented: true });
+  assert.equal(helper.selectedRepoKey, "1");
+  assert.deepEqual(opened, []);
 });
 
 test("restoring a removed repository key leaves the current selection intact", () => {
